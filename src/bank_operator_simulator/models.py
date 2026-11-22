@@ -3,12 +3,6 @@ from datetime import date
 from decimal import Decimal
 
 
-class Operator:
-    """Operator class to represent an operator"""
-
-    def __init__(self):
-        pass
-
 class Client:
     """Client model"""
 
@@ -33,6 +27,29 @@ class Client:
             f'баланс счета: {self.deposit} ₽,\n'
             f'сумма кредита: {self.credit} ₽'
         )
+
+
+class Bank:
+    def __init__(
+            self, name: str = "Банк",
+            reserves: Decimal = Decimal('5000000'),
+    ) -> None:
+        self.name = name
+        self.reserves = reserves
+        self.clients: dict = {}
+
+    def add_client(self, client: Client):
+        """Add a client to the bank."""
+        pass
+
+
+class Operator:
+    """Operator class to represent an operator"""
+
+    def __init__(self):
+        pass
+
+
 if __name__ == '__main__':
     # cli = Client()
     # cli = Client(
