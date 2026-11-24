@@ -44,21 +44,23 @@ class Bank:
         self.client_db[new_client.passport] = new_client
         return None
 
-    def get_client(self, client_number: int) -> None:
+    def get_client(self, passport: str) -> Client:
         """Get a client from the bank database."""
-        for key, value in self.client_db.items():
-            if client_number == key:
-                print(f'passport {client_number} -> {value}')
-                break
-            else:
-                print(f'passport {client_number} has not been added')
-        return None
+        # for key, value in self.client_db.items():
+        #     if client_number == key:
+        #         print(f'passport {client_number} -> {value}')
+        #         break
+        #     else:
+        #         print(f'passport {client_number} has not been added')
+        if passport not in self.client_db:
+            raise ValueError(f'Passport {passport} does not exist')
+        return self.client_db.get(passport)
 
-    def client_data_base(self, position) -> None:
+    def client_data_base(self) -> None:
         """Show client full database"""
-        position = self.client_db
+        #position = self.client_db
         print('client_data_base: ')
-        for pasport, info in position.items():
+        for pasport, info in self.client_db.items():
             print(info)
         return None
 
@@ -94,8 +96,14 @@ if __name__ == '__main__':
         # for passport, client_obj in bank.client_db.items():
         #     print(f"Клиент: {client_obj.name} (паспорт: {passport})")
 
-        bank.client_data_base(bank.client_db)
+        bank.client_data_base()
 
         # 5. Поиск клиента по паспорту
         find_client = input('input the key passport: ')
-        bank.get_client(find_client)
+        try:
+            search_result = bank.get_client(find_client)
+            print('New client found - success\n'
+                  f'Search result:\n{search_result}'
+            )
+        except ValueError as err:
+            print(f'Warning: {err}. try again')
