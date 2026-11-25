@@ -1,19 +1,19 @@
-class BankError(Exception):  # общий родитель всех ошибок банка.
+class BankError(Exception):
     """Базовое исключение банка."""
 
 
-class ClientAlreadyExistsError(BankError)  :# клиент уже есть в базе.
+class ClientAlreadyExistsError(BankError):
     """Клиент уже существует в базе"""
 
 
-class ClientNotFoundError(BankError):  # клиент не найден.
+class ClientNotFoundError(BankError):
     """Клиент не найден"""
 
 
-class InvalidAmountError(BankError):  # сумма <= 0.
+class InvalidAmountError(BankError):
     """Не верное значение суммы"""
 
 
-class InsufficientBankFundsError(BankError):  # у банка не хватает резервов для выдачи кредита!
-    """Банк стал БОМЖОМ!"""
+class InsufficientBankFundsError(BankError):
+    """Недостаточно средств в резервах банка."""
 
