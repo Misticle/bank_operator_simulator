@@ -1,6 +1,8 @@
 from datetime import date
 from decimal import Decimal
 
+from bank_operator_simulator import exceptions as exc
+
 
 class Client:
     """Client model"""
@@ -40,14 +42,14 @@ class Bank:
     def add_client(self, new_client: Client) -> None:
         """Add a client to the bank."""
         if new_client.passport in self.client_db:
-            raise ValueError(f'Passport {new_client.passport} already exists')
+            raise exc.ClientAlreadyExistsError(f'Passport {new_client.passport} already exists')
         self.client_db[new_client.passport] = new_client
         return None
 
     def get_client(self, passport: str) -> Client | None:
         """Get a client from the bank database."""
         if passport not in self.client_db:
-            raise ValueError(f'Passport {passport} does not exist')
+            raise exc.ClientNotFoundError(f'Passport {passport} does not exist')
         return self.client_db.get(passport)
 
     def client_data_base(self) -> None:
@@ -58,11 +60,8 @@ class Bank:
         return None
 
     def deposit_money(self, passport: str, amount: Decimal) -> Decimal:
-        # 1. Проверка, что amount > 0 (иначе raise ValueError).
-        # 2. Поиск клиента через self.get_client(passport).
-        # 3. Прибавление amount к депозиту клиента (client.deposit) и к резерву банка (self.reserves).
         if amount <= 0:
-            raise ValueError(f'Amount {amount} must be positive')
+            raise exc.InvalidAmountError(f'Amount {amount} must be positive')
         client = self.get_client(passport)
         client.deposit += amount
         self.reserves += amount
@@ -93,7 +92,7 @@ if __name__ == '__main__':
         try:
             bank.add_client(client)
             print('New client added - success')
-        except ValueError as err:
+        except exc.ClientAlreadyExistsError as err:
             print(f'Warning: {err}. try again')
 
         print('4. Вывели всех клиентов, которые сейчас есть в банке:-------')
@@ -106,7 +105,7 @@ if __name__ == '__main__':
             print('New client found - success\n'
                   f'Search result:\n{search_result}'
             )
-        except ValueError as err:
+        except exc.ClientNotFoundError as err:
             print(f'Warning: {err}. try again')
         else:
             print('Кладем деньги на депозитный счет----------------------------')
@@ -116,5 +115,5 @@ if __name__ == '__main__':
                 money_deposited = bank.deposit_money(search_result.passport, deposit)
                 print(f'Deposit amount: {deposit}')
                 print(f'Money deposited: {money_deposited}')
-            except ValueError as err:
+            except exc.InvalidAmountError as err:
                 print(f'Warning: {err}. try again')
