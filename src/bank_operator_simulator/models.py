@@ -44,25 +44,29 @@ class Bank:
         self.client_db[new_client.passport] = new_client
         return None
 
-    def get_client(self, passport: str) -> Client:
+    def get_client(self, passport: str) -> Client | None:
         """Get a client from the bank database."""
-        # for key, value in self.client_db.items():
-        #     if client_number == key:
-        #         print(f'passport {client_number} -> {value}')
-        #         break
-        #     else:
-        #         print(f'passport {client_number} has not been added')
         if passport not in self.client_db:
             raise ValueError(f'Passport {passport} does not exist')
         return self.client_db.get(passport)
 
     def client_data_base(self) -> None:
         """Show client full database"""
-        #position = self.client_db
         print('client_data_base: ')
-        for pasport, info in self.client_db.items():
+        for passport, info in self.client_db.items():
             print(info)
         return None
+
+    def deposit_money(self, passport: str, amount: Decimal) -> Decimal:
+        # 1. Проверка, что amount > 0 (иначе raise ValueError).
+        # 2. Поиск клиента через self.get_client(passport).
+        # 3. Прибавление amount к депозиту клиента (client.deposit) и к резерву банка (self.reserves).
+        if amount <= 0:
+            raise ValueError(f'Amount {amount} must be positive')
+        client = self.get_client(passport)
+        client.deposit += amount
+        self.reserves += amount
+        return client.deposit
 
 
 class Operator:
@@ -79,26 +83,23 @@ if __name__ == '__main__':
         name = input('Введите имя клиента: ')
         passport = input('Введите паспорт: ')
 
-        # 1. Присвоили новый номер
+        print('1. Присвоили новый номер------------------------------------')
         client_number += 1
 
-        # 2. Собрали объект
+        print('2. Собрали объект-------------------------------------------')
         client = Client(name=name, passport=passport, client_number=client_number)
 
-        # 3. Отдали банку (банк положил его в свой словарь)
+        print('3. Отдали банку (банк положил его в свой словарь)-----------')
         try:
             bank.add_client(client)
             print('New client added - success')
         except ValueError as err:
             print(f'Warning: {err}. try again')
 
-        # 4. Вывели всех клиентов, которые сейчас есть в банке:
-        # for passport, client_obj in bank.client_db.items():
-        #     print(f"Клиент: {client_obj.name} (паспорт: {passport})")
-
+        print('4. Вывели всех клиентов, которые сейчас есть в банке:-------')
         bank.client_data_base()
 
-        # 5. Поиск клиента по паспорту
+        print('5. Поиск клиента по паспорту--------------------------------')
         find_client = input('input the key passport: ')
         try:
             search_result = bank.get_client(find_client)
@@ -107,3 +108,13 @@ if __name__ == '__main__':
             )
         except ValueError as err:
             print(f'Warning: {err}. try again')
+        else:
+            print('Кладем деньги на депозитный счет----------------------------')
+
+            try:
+                deposit = Decimal(input())
+                money_deposited = bank.deposit_money(search_result.passport, deposit)
+                print(f'Deposit amount: {deposit}')
+                print(f'Money deposited: {money_deposited}')
+            except ValueError as err:
+                print(f'Warning: {err}. try again')
