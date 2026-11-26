@@ -17,3 +17,8 @@ class InvalidAmountError(BankError):
 class InsufficientBankFundsError(BankError):
     """Недостаточно средств в резервах банка."""
 
+class InsufficientClientFundsError(BankError):
+    """Недостаточно средств на счете клиента"""
+
+class ClientOverpayWarning(BankError):
+    """Предупреждение переплаты клиентом кредита"""

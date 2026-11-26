@@ -31,6 +31,8 @@ class Client:
 
 
 class Bank:
+    """Bank model"""
+    
     def __init__(
             self, name: str = "Банк",
             reserves: Decimal = Decimal('5000000'),
@@ -60,12 +62,43 @@ class Bank:
         return None
 
     def deposit_money(self, passport: str, amount: Decimal) -> Decimal:
+        """внесение средств на депозитный счет"""
         if amount <= 0:
             raise exc.InvalidAmountError(f'Amount {amount} must be positive')
         client = self.get_client(passport)
         client.deposit += amount
         self.reserves += amount
         return client.deposit
+
+    def issue_loan(self, passport: str, amount: Decimal) -> Client:
+        """Выдача кредита"""
+        if amount <= 0:
+            raise exc.InvalidAmountError(f'Amount {amount} must be positive')
+        client = self.get_client(passport)
+        if amount > self.reserves:
+            raise exc.InsufficientBankFundsError(f'Amount {amount} cannot be greater than reserves')
+        self.reserves -= amount
+        client.credit += amount
+        client.deposit += amount
+        return client
+
+    def repay_loan(self, passport: str, amount: Decimal) -> Client:
+        """Погашение кредита"""
+        if amount <= 0:
+            raise exc.InvalidAmountError(f'Amount {amount} must be positive')
+        client = self.get_client(passport)
+        if self.client_db[passport].deposit < amount:
+            raise exc.InsufficientClientFundsError(
+                f'not enough money on {passport} client`s account'
+            )
+        if amount > client.credit:
+            raise exc.ClientOverpayWarning(
+                f'{passport} client is about to be charged more than needed'
+            )
+        client.credit -= amount
+        client.deposit -= amount
+        self.reserves += amount
+        return client
 
 
 class Operator:
