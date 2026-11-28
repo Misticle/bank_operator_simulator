@@ -22,3 +22,6 @@ class InsufficientClientFundsError(BankError):
 
 class ClientOverpayWarning(BankError):
     """Предупреждение переплаты клиентом кредита"""
+
+class AdminAuthError(BankError):
+    """Не верный логин/пароль суперпользователя"""

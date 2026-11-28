@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from bank_operator_simulator import exceptions as exc
+from bank_operator_simulator.security import require_admin
 
 
 class Client:
@@ -54,6 +55,7 @@ class Bank:
             raise exc.ClientNotFoundError(f'Passport {passport} does not exist')
         return self.client_db.get(passport)
 
+    @require_admin
     def client_data_base(self) -> None:
         """Show client full database"""
         print('client_data_base: ')
@@ -61,6 +63,7 @@ class Bank:
             print(info)
         return None
 
+    @require_admin
     def deposit_money(self, passport: str, amount: Decimal) -> Decimal:
         """внесение средств на депозитный счет"""
         if amount <= 0:
@@ -70,6 +73,7 @@ class Bank:
         self.reserves += amount
         return client.deposit
 
+    @require_admin
     def issue_loan(self, passport: str, amount: Decimal) -> Client:
         """Выдача кредита"""
         if amount <= 0:
@@ -82,6 +86,7 @@ class Bank:
         client.deposit += amount
         return client
 
+    @require_admin
     def repay_loan(self, passport: str, amount: Decimal) -> Client:
         """Погашение кредита"""
         if amount <= 0:
@@ -99,6 +104,11 @@ class Bank:
         client.deposit -= amount
         self.reserves += amount
         return client
+
+    @require_admin
+    def show_reserves(self) -> Decimal:
+        """Показать текущие резервы банка (только для админа)."""
+        return self.reserves
 
 
 class Operator:
