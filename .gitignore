@@ -8,3 +8,4 @@ __pycache__/
 *.pyc
 # Временные файлы экспериментов
 experiment*.py
+test_experiment.py
