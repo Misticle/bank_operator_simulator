@@ -87,13 +87,13 @@ class Bank:
         if amount <= 0:
             raise exc.InvalidAmountError(f'Amount {amount} must be positive')
         client = self.get_client(passport)
-        if self.client_db[passport].deposit < amount:
-            raise exc.InsufficientClientFundsError(
-                f'not enough money on {passport} client`s account'
-            )
         if amount > client.credit:
             raise exc.ClientOverpayWarning(
                 f'{passport} client is about to be charged more than needed'
+            )
+        if self.client_db[passport].deposit < amount:
+            raise exc.InsufficientClientFundsError(
+                f'not enough money on {passport} client`s account'
             )
         client.credit -= amount
         client.deposit -= amount

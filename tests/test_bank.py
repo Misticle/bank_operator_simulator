@@ -24,53 +24,83 @@ def test_client_not_exist(sample_bank) -> None:
 # 2. deposit_money
 
 def test_deposit_success(sample_bank, sample_client) -> None:
+    test_deposit = Decimal('500')
     sample_bank.add_client(sample_client)
-    sample_bank.deposit_money(sample_client.passport, Decimal('500'))
-    assert sample_bank.client_db[sample_client.deposit] == deposit
+    sample_bank.deposit_money(sample_client.passport, test_deposit)
+    assert sample_bank.client_db[sample_client.passport].deposit == test_deposit
 
-def test_deposit_success(sample_bank, sample_client) -> None:
+@pytest.mark.parametrize(
+    'wrong_amount',
+    [Decimal('0'), Decimal('-500')],
+    ids = ['zero', 'negative']
+)
+def test_invalid_amount_error(sample_bank, sample_client, wrong_amount: Decimal) -> None:
     sample_bank.add_client(sample_client)
     with pytest.raises(exc.InvalidAmountError):
-        sample_bank.deposit_money(sample_client.passport, Decimal('0'))
-
-def test_deposit_success(sample_bank, sample_client) -> None:
-    sample_bank.add_client(sample_client)
-    with pytest.raises(exc.InvalidAmountError):
-        sample_bank.deposit_money(sample_client.passport, Decimal('-500'))
+        sample_bank.deposit_money(sample_client.passport, wrong_amount)
 
 # 3. issue_loan
 
+def test_issue_loan_success(sample_bank, sample_client) -> None:
+    test_loan = Decimal('500')
+    bank_reserve_delta = sample_bank.reserves - test_loan
+    sample_bank.add_client(sample_client)
+    sample_bank.issue_loan(sample_client.passport, test_loan)
+    assert sample_bank.client_db[sample_client.passport].credit == test_loan
+    assert sample_bank.client_db[sample_client.passport].deposit == test_loan
+    assert sample_bank.reserves == bank_reserve_delta
 
-
-    # def deposit_money(self, passport: str, amount: Decimal) -> Decimal:
-    #     """внесение средств на депозитный счет"""
-    #     if amount <= 0:
-    #         raise exc.InvalidAmountError(f'Amount {amount} must be positive')
-    #     client = self.get_client(passport)
-    #     client.deposit += amount
-    #     self.reserves += amount
-    #     return client.deposit
-
-# InsufficientBankFundsError
-
+def test_issue_loan_insufficient_funds(sample_bank, sample_client) -> None:
+    test_loan = Decimal('500')
+    sample_bank.add_client(sample_client)
+    sample_bank.reserves = Decimal('0')
+    with pytest.raises(exc.InsufficientBankFundsError):
+        sample_bank.issue_loan(sample_client.passport, test_loan)
 
 # 4. погашение
 
-# ClientOverpayWarning
+def test_repay_loan_success(sample_bank, sample_client) -> None:
+    test_loan = Decimal('500')
+    test_repay = test_loan
+    zero_loan = test_loan - test_repay
+    sample_bank.add_client(sample_client)
+    sample_bank.issue_loan(sample_client.passport, test_loan)
+    sample_bank.repay_loan(sample_client.passport, test_repay)
+    assert sample_bank.client_db[sample_client.passport].credit == zero_loan
 
-# InsufficientClientFundsError
+def test_repay_loan_insufficient_funds(sample_bank, sample_client) -> None:
+    test_loan = Decimal('500')
+    test_repay = test_loan
+    sample_bank.add_client(sample_client)
+    sample_bank.issue_loan(sample_client.passport, test_loan)
+    sample_bank.client_db[sample_client.passport].deposit = Decimal('0')
+    with pytest.raises(exc.InsufficientClientFundsError):
+        sample_bank.repay_loan(sample_client.passport, test_repay)
+
+def test_repay_loan_overpay(sample_bank, sample_client) -> None:
+    test_loan = Decimal('500')
+    test_repay = test_loan + Decimal('500')
+    sample_bank.add_client(sample_client)
+    sample_bank.issue_loan(sample_client.passport, test_loan)
+    with pytest.raises(exc.ClientOverpayWarning):
+        sample_bank.repay_loan(sample_client.passport, test_repay)
 
 
-# -------------------------------------
-# @pytest.mark.parametrize(
-#     'a, b, expected',
-#     [
-#         (50, 200, (50, 200, 250)),
-#         (50, -200, (50, -200, -150)),
-#         (-50, 200, (-50, 200, 150)),
-#         (-50, -200, (-50, -200, -250)),
-#     ],
-#     ids = ['+/+', '+/-', '-/+', '-/-']
-# )
-# def test_function_xyz(a, b, expected: tuple):
-#     assert function_xyz(a, b) == expected
+    # def repay_loan(self, passport: str, amount: Decimal) -> Client:
+    #     """Погашение кредита"""
+    #     if amount <= 0:
+    #         raise exc.InvalidAmountError(f'Amount {amount} must be positive')
+    #     client = self.get_client(passport)
+    #     if self.client_db[passport].deposit < amount:
+    #         raise exc.InsufficientClientFundsError(
+    #             f'not enough money on {passport} client`s account'
+    #         )
+    #     if amount > client.credit:
+    #         raise exc.ClientOverpayWarning(
+    #             f'{passport} client is about to be charged more than needed'
+    #         )
+    #     client.credit -= amount
+    #     client.deposit -= amount
+    #     self.reserves += amount
+    #     return client
+
